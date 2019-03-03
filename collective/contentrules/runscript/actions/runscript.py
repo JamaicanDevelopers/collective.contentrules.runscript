@@ -7,9 +7,13 @@ from plone.contentrules.rule.interfaces import IRuleElementData, IExecutable
 
 from Products.CMFPlone.utils import safe_unicode
 
+from collective.contentrules.runscript import logger
 from collective.contentrules.runscript import runscriptMessageFactory as _
 from collective.contentrules.runscript.actions.interfaces import IRunScriptAction, IParamValuePair
 from plone.app.contentrules.browser.formhelper import ContentRuleFormWrapper, AddForm, EditForm
+
+
+force_include_for_scripts = ["tag_after_contentrule_context"]
 
 
 class ScriptNotFound(Exception):
@@ -69,9 +73,25 @@ class RunScriptActionExecutor(object):
                 return False
             else:
                 return True
-        params = dict([(str(p.name), p.value) for p in self.element.parameters])
-        script(**params)
 
+        params = {}
+        if self.element.include_contentrule_context or str(self.element.script) in force_include_for_scripts:
+            params["contentrule_context"] = self.context
+
+        if self.element.parameters is not None:
+            for p in self.element.parameters:
+                if not p:
+                    continue
+                values = p.split("=", 1)
+                if len(values) > 1:
+                    try:
+                        params[str(values[0])] = eval(values[1])
+                    except Exception as e:
+                        logger.warning(e)
+                        params[str(values[0])] = values[1]
+                else:
+                    params[str(values[0])] = None
+        script(**params)
         return True
 
 

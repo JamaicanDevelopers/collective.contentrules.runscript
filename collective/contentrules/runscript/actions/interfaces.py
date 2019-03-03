@@ -20,15 +20,24 @@ class IRunScriptAction(Interface):
 
     parameters = schema.List(
         title=_(u'Parameter list'),
-        description=_(u"A list of parameters you wish to pass to the script"),
+        description=_(u"A list of parameters you wish to pass to the script. "
+                      u"Place each param=value pair on a new line. "
+                      u"Also, the system will evaluate the value of the parameter. "
+                      u"If it fails to evaluate the value, then the value will be str type."),
         default=[],
-        value_type=schema.Object(IParamValuePair, title=_(u"Parameter")),
+        value_type=schema.TextLine(title=_(u"Parameter")),
+        required=False
+    )
+
+    include_contentrule_context = schema.Bool(
+        title=_("Include the context that this contentrule applies to as a parameter."),
+        description=_(u"If checked, assign the context as the contentrule_context parameter"),
         required=False
     )
 
     fail_on_script_not_found = schema.Bool(
         title=_("Fail on script not found"),
-        description=_("Raise exception if script can't be traversed to from object."),
+        description=_(u"Raise exception if script can't be traversed to from object."),
         required=False
     )
 
